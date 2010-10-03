@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+  <context:property-placeholder location="classpath:/jobsched.properties"
+                                system-properties-mode="OVERRIDE" />
+
+  <!-- Database Connections -->
+  <bean id="postgres" class="org.apache.commons.dbcp.BasicDataSource"
+        p:driverClassName="org.postgresql.Driver"
+        p:url="jdbc:postgresql://${pool.pgsql.host}/npc_warehouse"
+        p:username="${pool.pgsql.username}"
+        p:password="${pool.pgsql.password}"
+        p:maxActive="${pool.pgsql.max.size}"
+        p:maxIdle="3"
+        p:minIdle="3"
+        p:testWhileIdle="true"
+        p:testOnBorrow="false"
+        p:testOnReturn="false"
+        p:validationQuery="${pool.pgsql.validQuery}" />
+
+</beans>

@@ -1,0 +1,15 @@
+#!/usr/bin/ruby
+
+cloud_home = File.expand_path(File.dirname(__FILE__) + "/../")
+library_path = "#{cloud_home}/lib"
+
+java_opts = "-Dlog.dir=#{cloud_home}/log -Djava.libray.path=#{library_path}"
+groovysh = "/Users/jbrisbin/Java/groovy-1.7.4/bin/groovy"
+
+target_classes = cloud_home + "/target/classes"
+classpath = "#{cloud_home}/etc#{File::PATH_SEPARATOR}" + Dir.glob(cloud_home + "/lib/*.jar").join(File::PATH_SEPARATOR)
+
+# Uncomment for development
+classpath += "#{File::PATH_SEPARATOR}#{cloud_home}/target/classes"
+
+system "#{groovysh} -classpath #{classpath} #{java_opts} #{ARGV.join(' ')}"

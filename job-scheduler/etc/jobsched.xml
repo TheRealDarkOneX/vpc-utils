@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+  <context:component-scan base-package="com.jbrisbin.vpc" />
+  <context:property-placeholder location="classpath:/jobsched.properties"
+                                system-properties-mode="OVERRIDE" />
+
+  <!-- Global Groovy script engine -->
+  <bean id="groovyScriptEngine" class="groovy.util.GroovyScriptEngine">
+    <constructor-arg>
+      <array value-type="java.lang.String">
+        <value>
+          /Users/jbrisbin/Development/Projects/vpc/job-scheduler/src/main/resources/plugins
+        </value>
+        <value>
+          /Users/jbrisbin/Development/Projects/vpc/job-scheduler/src/main/resources/mapred
+        </value>
+      </array>
+    </constructor-arg>
+  </bean>
+  <!-- Plugin Manager -->
+  <bean id="groovyPluginManager" class="com.jbrisbin.vpc.jobsched.GroovyPluginManager"
+        p:groovyScriptEngine-ref="groovyScriptEngine" />
+  <bean id="groovyBeanClosure" class="com.jbrisbin.vpc.jobsched.util.BeanClosure">
+    <constructor-arg ref="groovyScriptEngine" />
+  </bean>
+  <bean id="groovyClosureFactory" class="com.jbrisbin.vpc.jobsched.ClosureFactory"
+        p:mapreduceExchange="${mapred.exchange.name}"
+        p:mapreduceControlExchange="${mapred_control.exchange.name}"
+        p:mapRoutingKey="${mapred.map.route}"
+        p:reduceRoutingKey="${mapred.reduce.route}"
+        p:mapreduceSecurityKey="${mapred.security.key}" />
+
+  <!-- SQL Listener -->
+  <bean id="sqlMessageConverter" class="com.jbrisbin.vpc.jobsched.sql.SqlMessageConverter"
+        p:securityKey="${jobsched.sql.security.key}" />
+  <bean id="sqlMessageHandler" class="com.jbrisbin.vpc.jobsched.RequeueMessageListenerAdapter"
+        p:messageConverter-ref="sqlMessageConverter"
+        p:requeueExchangeName="${jobsched.exchange.name}"
+        p:requeueQueueName="${jobsched.requeue_queue.name}"
+        p:notifyQueueName="${jobsched.notify_queue.name}"
+        p:maxRetries="${maxRetries}"
+        p:riakBase="${riakBase}"
+        p:riakBucket="${riakBucket}">
+    <property name="delegate">
+      <bean class="com.jbrisbin.vpc.jobsched.sql.SqlMessageHandler"
+            p:storeDbLogin="ngpos"
+            p:storeDbPassword="8awgl5qr"
+            p:storeDbName="npc" />
+    </property>
+  </bean>
+  <bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer"
+        p:autoAck="true"
+        p:connectionFactory-ref="connectionFactory"
+        p:queueName="${jobsched.sql_queue.name}"
+        p:messageListener-ref="sqlMessageHandler"
+        p:concurrentConsumers="5" />
+
+  <!-- Exe Listener -->
+  <bean id="exeMessageConverter" class="com.jbrisbin.vpc.jobsched.exe.ExeMessageConverter"
+        p:securityKey="${jobsched.exe.security.key}" />
+  <bean id="exeMessageHandler"
+        class="com.jbrisbin.vpc.jobsched.DirectToQueueMessageListenerAdapter"
+        p:messageConverter-ref="exeMessageConverter">
+    <property name="delegate">
+      <bean class="com.jbrisbin.vpc.jobsched.exe.ExeMessageHandler" />
+    </property>
+  </bean>
+  <bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer"
+        p:autoAck="true"
+        p:connectionFactory-ref="connectionFactory"
+        p:queueName="${jobsched.exe_queue.name}"
+        p:messageListener-ref="exeMessageHandler"
+        p:concurrentConsumers="5" />
+
+  <!-- Batch Listener -->
+  <bean id="batchMessageConverter" class="com.jbrisbin.vpc.jobsched.batch.BatchMessageConverter"
+        p:securityKey="${jobsched.batch.security.key}" />
+  <bean id="batchMessageHandler"
+        class="com.jbrisbin.vpc.jobsched.DirectToQueueMessageListenerAdapter"
+        p:messageConverter-ref="batchMessageConverter">
+    <property name="delegate">
+      <bean class="com.jbrisbin.vpc.jobsched.batch.BatchMessageHandler" />
+    </property>
+  </bean>
+  <bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer"
+        p:autoAck="true"
+        p:connectionFactory-ref="connectionFactory"
+        p:queueName="${jobsched.batch_queue.name}"
+        p:messageListener-ref="batchMessageHandler"
+        p:concurrentConsumers="5" />
+
+  <!-- Map/Reduce -->
+  <bean id="groovyMapReduceClosure" class="com.jbrisbin.vpc.jobsched.mapred.MapReduceClosure"
+        p:mapreduceExchange="${mapred.exchange.name}"
+        p:mapreduceControlExchange="${mapred_control.exchange.name}"
+        p:mapRoutingKey="${mapred.map.route}"
+        p:reduceRoutingKey="${mapred.reduce.route}"
+        p:mapreduceSecurityKey="${mapred.security.key}">
+    <constructor-arg ref="groovyScriptEngine" />
+  </bean>
+  <bean id="mapredMessageConvertor"
+        class="com.jbrisbin.vpc.jobsched.mapred.MapReduceMessageConverter"
+        p:securityKey="${mapred.security.key}" />
+  <bean id="mapredMessageHandler"
+        class="org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter"
+        p:messageConverter-ref="mapredMessageConvertor">
+    <property name="delegate">
+      <bean class="com.jbrisbin.vpc.jobsched.mapred.MapReduceMessageHandler"
+            init-method="start"
+            destroy-method="stop"
+            p:mapreduceExchange="${mapred.exchange.name}"
+            p:mapreduceControlExchange="${mapred_control.exchange.name}"
+            p:reduceRoutingKey="${mapred.reduce.route}"
+            p:mapreduceSecurityKey="${mapred.security.key}" />
+    </property>
+  </bean>
+  <bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer"
+        p:autoAck="true"
+        p:connectionFactory-ref="connectionFactory"
+        p:queueName="${mapred.map.queue}"
+        p:messageListener-ref="mapredMessageHandler"
+        p:concurrentConsumers="5" />
+  <bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer"
+        p:autoAck="true"
+        p:connectionFactory-ref="connectionFactory"
+        p:queueName="${mapred.reduce.queue}"
+        p:messageListener-ref="mapredMessageHandler"
+        p:concurrentConsumers="5" />
+
+  <!-- Requeue for later execution on failed messages -->
+  <bean id="requeue" class="com.jbrisbin.vpc.jobsched.RequeueJob"
+        p:maxRetries="${maxRetries}"
+        p:riakBase="${riakBase}"
+        p:riakBucket="${riakBucket}" />
+
+  <!-- Scheduled Jobs -->
+  <task:scheduler id="scheduler" pool-size="1" />
+  <task:executor id="executor" pool-size="1" />
+  <task:scheduled-tasks scheduler="scheduler">
+    <task:scheduled ref="requeue" method="maybeRequeue" fixed-rate="300000" />
+  </task:scheduled-tasks>
+</beans>
