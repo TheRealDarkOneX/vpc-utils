@@ -85,6 +85,18 @@ This message handler executes SQL encoded within JSON messages like the followin
 
 This utility can be hugely useful, assuming you trust your producers. 
 
+The response will be JSON data as well:
+
+<pre><code>{
+	totalRows: 1,
+	columnNames: ["id", "desc"],
+	errors: null,
+	data: [
+		[12345, "this is the description"]
+	]
+}
+</code></pre>
+
 There is also a swiss army knife for these message types in that you can extend 
 the functionality of the SQL handler by writing Groovy plugins. To invoke a plugin, 
 reference it like the following in your "sql" setting:
