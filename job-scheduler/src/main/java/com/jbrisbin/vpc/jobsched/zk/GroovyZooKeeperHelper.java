@@ -40,7 +40,7 @@ public class GroovyZooKeeperHelper extends GroovyObjectSupport {
 
   public GroovyZooKeeperHelper(String url) throws IOException {
     this();
-    setZookeeper(new ZooKeeper("localhost:2181", DEFAULT_TIMEOUT, clientWatcher));
+    setZookeeper(new ZooKeeper(url, DEFAULT_TIMEOUT, clientWatcher));
   }
 
   public GroovyZooKeeperHelper(Map<String, Closure> callbacks, String url) throws IOException {
