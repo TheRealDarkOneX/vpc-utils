@@ -134,18 +134,19 @@
       <version>2.2</version>
     </dependency>
 
-    <!-- JTOpen -->
+    <!-- JTOpen
     <dependency>
       <groupId>net.sf.jt400</groupId>
       <artifactId>jt400</artifactId>
       <version>6.7</version>
     </dependency>
+    -->
 
     <!-- PostgreSQL -->
     <dependency>
       <groupId>postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>9.0-801.jdbc4</version>
+      <version>8.4-701.jdbc3</version>
     </dependency>
 
     <!-- Jackson JSON -->
