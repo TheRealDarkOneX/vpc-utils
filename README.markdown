@@ -51,6 +51,62 @@ If you want to do interactive testing using the Groovy shell, edit the script
 
 This will start the groovy shell with all the dependencies in the classpath.
 
+### Patch Handler
+***
+
+This message handler expects a Unified DIFF as the body of the message and will
+patch the file specified in the message header "file". For security purposes, you
+have to set a "rootDir" on the message converter. No matter what you set as the
+file name, it will be a relative path under this root.
+
+The original file will be timestamped, renamed, and saved before being over-written.
+
+Example diff:
+
+<pre><code>--- /tmp/test.txt	2010-10-08 14:46:09.000000000 -0500
++++ /tmp/test2.txt	2010-10-08 14:23:54.000000000 -0500
+@@ -1,7 +1,8 @@
+ This is a test file.
+ This is a test file.
++NEW LINE ADDED!!!!!
++NEW LINE ADDED!!!!!
+ This is a test file.
+ This is a test file.
+ This is a test file.
+-This is a test file.
+-This is a test file.
++NEW LINE ADDED!!!!!
+</code></pre>
+
+Will turn this:
+
+<pre><code>This is a test file.
+This is a test file.
+This is a test file.
+This is a test file.
+This is a test file.
+This is a test file.
+This is a test file.
+</code></pre>
+
+Into this:
+
+<pre><code>This is a test file.
+This is a test file.
+NEW LINE ADDED!!!!!
+NEW LINE ADDED!!!!!
+This is a test file.
+This is a test file.
+This is a test file.
+NEW LINE ADDED!!!!!
+</code></pre>
+
+The original will be backed up before being overwritten:
+
+<pre><code># ls /tmp/test*
+/tmp/test.txt /tmp/test.txt.backup20101008.151046
+</code></pre>
+
 ### EXE Handler
 ***
 
