@@ -12,7 +12,7 @@
   <!-- Database Connections -->
   <bean id="postgres" class="org.apache.commons.dbcp.BasicDataSource"
         p:driverClassName="org.postgresql.Driver"
-        p:url="jdbc:postgresql://${pool.pgsql.host}/npc_warehouse"
+        p:url="jdbc:postgresql://${pool.pgsql.host}/test"
         p:username="${pool.pgsql.username}"
         p:password="${pool.pgsql.password}"
         p:maxActive="${pool.pgsql.max.size}"

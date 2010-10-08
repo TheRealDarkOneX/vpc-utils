@@ -37,4 +37,4 @@ AMQP.start(:host => "localhost",
 
 end
 
-t.join(5)
+t.join(3)
