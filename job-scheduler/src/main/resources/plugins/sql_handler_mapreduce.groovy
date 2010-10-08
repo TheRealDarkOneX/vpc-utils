@@ -2,8 +2,6 @@ import java.sql.CallableStatement
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
 import java.util.concurrent.TimeUnit
-import org.apache.zookeeper.CreateMode
-import org.apache.zookeeper.ZooDefs
 import org.codehaus.jackson.map.ObjectMapper
 import org.springframework.amqp.core.Message
 import org.springframework.amqp.core.MessageCreator
@@ -32,15 +30,22 @@ callback = { stmt, msg ->
   msg.results.data = []
   msg.results.columnNames = ["key", "total"]
   String lastKey = null
+  zk = new com.jbrisbin.vpc.zk.GroovyZooKeeperHelper("localhost:2181",
+      onNodeChildrenChanged: { evt ->
+      },
+      onEvent: { evt ->
+
+      }
+  )
 
   listener = listen({ result, props ->
     log.debug("got result: ${result}")
     endTime = System.currentTimeMillis()
     [result.key, result.total]
   })
-  replyTo = listener["queue"]
+  replyTo = listener.queueName
 
-  jobPath = zookeeper.create("/vpc/mapred/${msg.id}", "0".bytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL)
+  jobNode = zk.createPersistentNodeAndParents("/vpc/mapred/jobs/${msg.id}")
   if (stmt.execute()) {
     ResultSet results = stmt.resultSet
     ResultSetMetaData meta
@@ -75,7 +80,7 @@ callback = { stmt, msg ->
     }
   }
 
-  while ((row = listener["results"].poll(1, TimeUnit.SECONDS))) {
+  while ((row = listener.results.poll(1, TimeUnit.SECONDS))) {
     msg.results.data << row
   }
   totalTime = endTime - startTime

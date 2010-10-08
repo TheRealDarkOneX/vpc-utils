@@ -206,7 +206,7 @@ that should be able to be used by any Groovy code to make interacting with ZooKe
 more Groovy. Here's an example of how make working with ZooKeeper easier within a Groovy
 script:
 
-<pre><code>import com.jbrisbin.vpc.jobsched.zk.GroovyZooKeeperHelper
+<pre><code>import com.jbrisbin.vpc.zk.GroovyZooKeeperHelper
 
 zk = new GroovyZooKeeperHelper("localhost:2181",
     onNodeChildrenChanged: { evt ->

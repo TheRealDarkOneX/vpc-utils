@@ -1,6 +1,4 @@
-import com.jbrisbin.vpc.jobsched.zk.GroovyZooKeeperHelper
-
-zk = new GroovyZooKeeperHelper("localhost:2181",
+zk = new com.jbrisbin.vpc.zk.GroovyZooKeeperHelper("localhost:2181",
     onNodeChildrenChanged: { evt ->
       println "childrenChanged: ${evt}"
     },
@@ -21,16 +19,22 @@ if (!zk.exists(jobs)) {
 
 // Create node for job run
 jobId = "test"
-jobNode = zk.createSequenceNode("${jobs}/${jobId}.")
+for (i in 1..5) {
+  node = zk.createSequenceNode("${jobs}/${jobId}.")
 
-// Test setting integer
-jobNode.data = 1
-println "jobNode: ${jobNode.data}"
+  // Test setting integer
+  node.data = i
+  println "setting integer on node: ${node.data}"
+}
 
-// Test setting string
-jobNode.data = "String"
-println "jobNode: ${jobNode.data}"
+zk.getChildren(jobs).each {
+  path = "${jobs}/${it}"
+  data = zk.getData(path)
+  println "child: ${it}=${data}"
+  zk.delete path
+}
 
+zk.delete "/vpc/mapred/jobs"
 
 
 
