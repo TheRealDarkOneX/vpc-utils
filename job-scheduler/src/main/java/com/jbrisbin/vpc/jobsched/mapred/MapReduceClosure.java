@@ -16,25 +16,15 @@
 
 package com.jbrisbin.vpc.jobsched.mapred;
 
-import com.jbrisbin.vpc.jobsched.SecureMessageConverter;
+import com.jbrisbin.vpc.zk.GroovyZooKeeperHelper;
 import groovy.lang.Closure;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Address;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageCreator;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.amqp.rabbit.core.RabbitMessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 /**
  * @author Jon Brisbin <jon@jbrisbin.com>
@@ -44,7 +34,7 @@ public class MapReduceClosure extends Closure {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private ObjectMapper mapper = new ObjectMapper();
-  private ZooKeeper zookeeper;
+  private GroovyZooKeeperHelper zookeeper;
   private RabbitAdmin rabbitAdmin;
   private RabbitTemplate rabbitTemplate;
   private String mapreduceExchange;
@@ -57,11 +47,11 @@ public class MapReduceClosure extends Closure {
     super(owner);
   }
 
-  public ZooKeeper getZookeeper() {
+  public GroovyZooKeeperHelper getZookeeper() {
     return zookeeper;
   }
 
-  public void setZookeeper(ZooKeeper zookeeper) {
+  public void setZookeeper(GroovyZooKeeperHelper zookeeper) {
     this.zookeeper = zookeeper;
   }
 
@@ -134,16 +124,16 @@ public class MapReduceClosure extends Closure {
     final Object value = args[4];
 
     try {
-      zookeeper.exists(String.format("/%s", id), new Watcher() {
-        public void process(WatchedEvent watchedEvent) {
-          log.debug("exists watcher: " + watchedEvent);
-        }
-      });
+      Stat s = zookeeper.exists(String.format("/vpc/mapred/jobs/%s", id));
+      if (log.isDebugEnabled()) {
+        log.debug("Job node stat: " + s);
+      }
     } catch (KeeperException e) {
       log.error(e.getMessage(), e);
     } catch (InterruptedException e) {
       log.error(e.getMessage(), e);
     }
+    /*
     rabbitTemplate.send(mapreduceExchange, mapRoutingKey, new MessageCreator() {
       public Message createMessage() {
         MessageProperties props = new RabbitMessageProperties();
@@ -167,6 +157,7 @@ public class MapReduceClosure extends Closure {
         return msg;
       }
     });
+    */
     return null;
   }
 }

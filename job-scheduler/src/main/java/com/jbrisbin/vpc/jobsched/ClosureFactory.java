@@ -18,16 +18,22 @@ package com.jbrisbin.vpc.jobsched;
 
 import com.jbrisbin.vpc.jobsched.mapred.MapReduceClosure;
 import com.jbrisbin.vpc.jobsched.mapred.ReplyClosure;
-import org.apache.zookeeper.ZooKeeper;
+import com.jbrisbin.vpc.zk.GroovyZooKeeperHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
+
 /**
  * @author Jon Brisbin <jon@jbrisbin.com>
  */
 public class ClosureFactory {
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
   private ConnectionFactory connectionFactory;
@@ -41,6 +47,7 @@ public class ClosureFactory {
   private String mapRoutingKey;
   private String reduceRoutingKey;
   private String mapreduceSecurityKey;
+  private String zooKeeperUrl;
 
   public String getMapreduceExchange() {
     return mapreduceExchange;
@@ -82,6 +89,14 @@ public class ClosureFactory {
     this.mapreduceSecurityKey = mapreduceSecurityKey;
   }
 
+  public String getZooKeeperUrl() {
+    return zooKeeperUrl;
+  }
+
+  public void setZooKeeperUrl(String zooKeeperUrl) {
+    this.zooKeeperUrl = zooKeeperUrl;
+  }
+
   public MapReduceClosure createMapReduceClosure(Object owner) {
     MapReduceClosure cl = new MapReduceClosure(owner);
     cl.setMapreduceExchange(mapreduceExchange);
@@ -91,6 +106,12 @@ public class ClosureFactory {
     cl.setReduceRoutingKey(reduceRoutingKey);
     cl.setRabbitAdmin(rabbitAdmin);
     cl.setRabbitTemplate(rabbitTemplate);
+    try {
+      cl.setZookeeper(new GroovyZooKeeperHelper(zooKeeperUrl));
+    } catch (IOException e) {
+      log.error(e.getMessage(), e);
+    }
+
     return cl;
   }
 

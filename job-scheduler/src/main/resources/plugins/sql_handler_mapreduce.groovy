@@ -26,7 +26,7 @@ statementCreator = { conn, msg ->
   stmt
 }
 
-callback = { stmt, msg ->
+callback = { CallableStatement stmt, msg ->
   msg.results.data = []
   msg.results.columnNames = ["key", "total"]
   String lastKey = null
@@ -78,6 +78,8 @@ callback = { stmt, msg ->
       s = new String(out.toByteArray())
       log.debug "lastKey: ${lastKey}, key: ${key}, val: ${s}"
     }
+
+    results.close()
   }
 
   while ((row = listener.results.poll(1, TimeUnit.SECONDS))) {
