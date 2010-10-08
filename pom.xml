@@ -240,6 +240,13 @@
         <version>1.2.2</version>
       </dependency>
 
+      <!-- Diff -->
+      <dependency>
+        <groupId>com.googlecode.java-diff-utils</groupId>
+        <artifactId>diffutils</artifactId>
+        <version>1.2</version>
+      </dependency>
+
       <!-- Testing-->
       <dependency>
         <groupId>junit</groupId>

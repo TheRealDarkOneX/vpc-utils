@@ -137,6 +137,13 @@
       <artifactId>groovy-all</artifactId>
     </dependency>
 
+    <!-- Groovy ZooKeeper Helper -->
+    <dependency>
+      <groupId>com.jbrisbin.vpc</groupId>
+      <artifactId>groovy-zookeeper-helper</artifactId>
+      <version>1.0</version>
+    </dependency>
+
     <!-- Commons -->
     <dependency>
       <groupId>commons-cli</groupId>
@@ -155,9 +162,10 @@
       <artifactId>commons-dbcp</artifactId>
     </dependency>
 
+    <!-- Diff -->
     <dependency>
-      <groupId>com.jbrisbin.vpc</groupId>
-      <artifactId>groovy-zookeeper-helper</artifactId>
+      <groupId>com.googlecode.java-diff-utils</groupId>
+      <artifactId>diffutils</artifactId>
     </dependency>
 
     <!-- Testing-->

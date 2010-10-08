@@ -61,6 +61,23 @@
         p:messageListener-ref="sqlMessageHandler"
         p:concurrentConsumers="5"/>
 
+  <!-- Patch Listener -->
+  <bean id="patchMessageConverter" class="com.jbrisbin.vpc.jobsched.patch.PatchMessageConverter"
+        p:securityKey="${jobsched.patch.security.key}"
+        p:rootDir="/tmp"/>
+  <bean id="patchMessageHandler" class="org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter"
+        p:messageConverter-ref="patchMessageConverter">
+    <property name="delegate">
+      <bean class="com.jbrisbin.vpc.jobsched.patch.PatchMessageHandler"/>
+    </property>
+  </bean>
+  <bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer"
+        p:autoAck="true"
+        p:connectionFactory-ref="connectionFactory"
+        p:queueName="${jobsched.patch_queue.name}"
+        p:messageListener-ref="patchMessageHandler"
+        p:concurrentConsumers="1"/>
+
   <!-- Exe Listener -->
   <bean id="exeMessageConverter" class="com.jbrisbin.vpc.jobsched.exe.ExeMessageConverter"
         p:securityKey="${jobsched.exe.security.key}"/>

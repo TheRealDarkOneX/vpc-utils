@@ -70,6 +70,11 @@ public class QueueConfiguration extends AbstractRabbitConfiguration {
   @Value("${jobsched.exe_route.name}")
   private String exeRouteName;
 
+  @Value("${jobsched.patch_queue.name}")
+  private String patchQueueName;
+  @Value("${jobsched.patch_route.name}")
+  private String patchRouteName;
+
   @Value("${jobsched.batch_queue.name}")
   private String batchQueueName;
   @Value("${jobsched.batch_route.name}")
@@ -149,6 +154,20 @@ public class QueueConfiguration extends AbstractRabbitConfiguration {
   @Bean
   public Binding exeBinding() {
     Binding b = new Binding(exeQueue(), exchange(), exeRouteName);
+    return b;
+  }
+
+  @Bean
+  public Queue patchQueue() {
+    Queue q = new Queue(patchQueueName);
+    q.setDurable(true);
+    q.setAutoDelete(false);
+    return q;
+  }
+
+  @Bean
+  public Binding patchBinding() {
+    Binding b = new Binding(patchQueue(), exchange(), patchRouteName);
     return b;
   }
 
