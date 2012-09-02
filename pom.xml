@@ -27,7 +27,7 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>job-scheduler</module>
+    <!--<module>job-scheduler</module>-->
     <module>groovy-zookeeper-helper</module>
   </modules>
 
